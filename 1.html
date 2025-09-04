@@ -209,6 +209,70 @@
 			showBlackjackCelebration();
 		}
 	}
+	// 폭죽 애니메이션
+	const canvas = document.getElementById('fireworks-canvas');
+	const ctx = canvas.getContext('2d');
+	let fireworks = [];
+	function resizeCanvas() {
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	}
+	window.addEventListener('resize', resizeCanvas);
+	resizeCanvas();
+	function launchFirework(colors) {
+		const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+		const y = Math.random() * canvas.height * 0.3 + canvas.height * 0.2;
+		const particles = [];
+		const count = 32;
+		for (let i = 0; i < count; i++) {
+			const angle = (Math.PI * 2 * i) / count;
+			const speed = Math.random() * 3 + 2;
+			const color = colors[i % colors.length];
+			particles.push({
+				x, y,
+				vx: Math.cos(angle) * speed,
+				vy: Math.sin(angle) * speed,
+				alpha: 1,
+				radius: Math.random() * 3 + 2,
+				color: color
+			});
+		}
+		fireworks.push(particles);
+	}
+	function animateFireworks() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		fireworks.forEach((particles, idx) => {
+			particles.forEach(p => {
+				ctx.beginPath();
+				ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+				ctx.fillStyle = p.color.replace('1)', p.alpha + ')');
+				ctx.fill();
+				p.x += p.vx;
+				p.y += p.vy;
+				p.vy += 0.05;
+				p.alpha -= 0.018;
+			});
+		});
+		fireworks = fireworks.filter(particles => particles.some(p => p.alpha > 0));
+		if (fireworks.length > 0) {
+			requestAnimationFrame(animateFireworks);
+		} else {
+			canvas.style.display = 'none';
+			document.getElementById('blackjack-banner').style.opacity = 0;
+		}
+	}
+	function showBlackjackCelebration(colors = ['rgba(255,215,0,1)']) {
+		document.getElementById('blackjack-banner').style.opacity = 1;
+		canvas.style.display = 'block';
+		for (let i = 0; i < 5; i++) {
+			setTimeout(() => launchFirework(colors), i * 350);
+		}
+		animateFireworks();
+		setTimeout(() => {
+			document.getElementById('blackjack-banner').style.opacity = 0;
+			canvas.style.display = 'none';
+		}, 3200);
+	}
 	// 결과 체크
 	function checkResult() {
 		let playerScore = calcScore(player);
@@ -216,17 +280,25 @@
 
 		// 플레이어가 21점일 때 즉시 BLACKJACK 표시 (스탠드 전)
 		if (!gameOver && !playerStand && playerScore === 21) {
+			showBlackjackCelebration(['rgba(255,215,0,1)']);
 			return 'BLACK JACK!';
 		}
 
-		// 21점 무승부일 경우 BLACKJACK 표시
+		// 딜러와 플레이어 모두 21점인 경우 (무승부)
 		if (gameOver && playerScore === 21 && dealerScore === 21) {
-			showBlackjackCelebration();
+			// 파란색과 황금색 폭죽
+			showBlackjackCelebration(['rgba(0,180,255,1)','rgba(255,215,0,1)']);
 			return '무승부! (BLACK JACK!)';
 		}
 
+		// 딜러가 21점 초과, 플레이어가 21점
+		if (gameOver && playerScore === 21 && dealerScore > 21) {
+			showBlackjackCelebration(['rgba(255,215,0,1)']);
+			return '플레이어 승리! (BLACK JACK!)';
+		}
+
 		if (gameOver && playerScore === 21 && playerScore > dealerScore) {
-			showBlackjackCelebration();
+			showBlackjackCelebration(['rgba(255,215,0,1)']);
 			return '플레이어 승리! (BLACK JACK!)';
 		}
 		if (playerScore > 21) return '플레이어 버스트! 딜러 승리!';
@@ -263,69 +335,6 @@
 		canvas.style.display = 'none';
 		fireworks = [];
 	};
-	// 폭죽 애니메이션
-	const canvas = document.getElementById('fireworks-canvas');
-	const ctx = canvas.getContext('2d');
-	let fireworks = [];
-	function resizeCanvas() {
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
-	}
-	window.addEventListener('resize', resizeCanvas);
-	resizeCanvas();
-	function launchFirework() {
-		const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
-		const y = Math.random() * canvas.height * 0.3 + canvas.height * 0.2;
-		const particles = [];
-		const count = 32;
-		for (let i = 0; i < count; i++) {
-			const angle = (Math.PI * 2 * i) / count;
-			const speed = Math.random() * 3 + 2;
-			particles.push({
-				x, y,
-				vx: Math.cos(angle) * speed,
-				vy: Math.sin(angle) * speed,
-				alpha: 1,
-				radius: Math.random() * 3 + 2,
-				color: `rgba(255,215,0,1)`
-			});
-		}
-		fireworks.push(particles);
-	}
-	function animateFireworks() {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		fireworks.forEach((particles, idx) => {
-			particles.forEach(p => {
-				ctx.beginPath();
-				ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-				ctx.fillStyle = p.color.replace('1)', p.alpha + ')');
-				ctx.fill();
-				p.x += p.vx;
-				p.y += p.vy;
-				p.vy += 0.05;
-				p.alpha -= 0.018;
-			});
-		});
-		fireworks = fireworks.filter(particles => particles.some(p => p.alpha > 0));
-		if (fireworks.length > 0) {
-			requestAnimationFrame(animateFireworks);
-		} else {
-			canvas.style.display = 'none';
-			document.getElementById('blackjack-banner').style.opacity = 0;
-		}
-	}
-	function showBlackjackCelebration() {
-		document.getElementById('blackjack-banner').style.opacity = 1;
-		canvas.style.display = 'block';
-		for (let i = 0; i < 5; i++) {
-			setTimeout(launchFirework, i * 350);
-		}
-		animateFireworks();
-		setTimeout(() => {
-			document.getElementById('blackjack-banner').style.opacity = 0;
-			canvas.style.display = 'none';
-		}, 3200);
-	}
 	// 시작
 	initGame();
 	</script>
