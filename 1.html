@@ -71,6 +71,29 @@
             font-size: 1.1rem;
             color: #ff5252;
         }
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+        .blackjack-banner {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Bebas Neue', cursive, sans-serif;
+            font-size: 4rem;
+            color: #ffd700;
+            text-shadow: 0 0 16px #fff700, 0 0 32px #ffd700;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        #fireworks-canvas {
+            position: fixed;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -93,6 +116,8 @@
         </div>
         <div class="result" id="result"></div>
     </div>
+    <div class="blackjack-banner" id="blackjack-banner">BLACK JACK</div>
+    <canvas id="fireworks-canvas"></canvas>
     <script>
     // 블랙잭 카드 덱 생성
     const suits = ['♠', '♥', '♣', '◆'];
@@ -153,17 +178,99 @@
         });
         document.getElementById('player-score').textContent = `점수: ${calcScore(player)}`;
     }
+    // 폭죽 애니메이션 코드
+    const canvas = document.getElementById('fireworks-canvas');
+    const ctx = canvas.getContext('2d');
+    let fireworks = [];
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function launchFirework() {
+        const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+        const y = Math.random() * canvas.height * 0.3 + canvas.height * 0.2;
+        const particles = [];
+        const count = 32;
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count;
+            const speed = Math.random() * 3 + 2;
+            particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                alpha: 1,
+                radius: Math.random() * 3 + 2,
+                color: `rgba(255,215,0,1)`
+            });
+        }
+        fireworks.push(particles);
+    }
+
+    function animateFireworks() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        fireworks.forEach((particles, idx) => {
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color.replace('1)', p.alpha + ')');
+                ctx.fill();
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.05; // gravity
+                p.alpha -= 0.018;
+            });
+        });
+        fireworks = fireworks.filter(particles => particles.some(p => p.alpha > 0));
+        if (fireworks.length > 0) {
+            requestAnimationFrame(animateFireworks);
+        } else {
+            canvas.style.display = 'none';
+            document.getElementById('blackjack-banner').style.opacity = 0;
+        }
+    }
+
+    function showBlackjackCelebration() {
+        document.getElementById('blackjack-banner').style.opacity = 1;
+        canvas.style.display = 'block';
+        for (let i = 0; i < 5; i++) {
+            setTimeout(launchFirework, i * 350);
+        }
+        animateFireworks();
+        setTimeout(() => {
+            document.getElementById('blackjack-banner').style.opacity = 0;
+            canvas.style.display = 'none';
+        }, 3200);
+    }
+
     function checkResult() {
         let playerScore = calcScore(player);
         let dealerScore = calcScore(dealer);
-        if (playerScore > 21) return '플레이어 버스트! 딜러 승리!';
-        if (dealerScore > 21) return '딜러 버스트! 플레이어 승리!';
-        if (gameOver) {
-            if (playerScore > dealerScore) return '플레이어 승리!';
-            if (playerScore < dealerScore) return '딜러 승리!';
-            return '무승부!';
+        // 21점으로 이겼을 때
+        if (gameOver && playerScore === 21 && playerScore > dealerScore) {
+            showBlackjackCelebration();
+            document.getElementById('result').innerHTML = '플레이어 승리! (BLACK JACK!)';
+            return;
         }
-        return '';
+        if (playerScore > 21) {
+            document.getElementById('result').innerHTML = '플레이어 버스트! 딜러 승리!';
+            return;
+        }
+        if (dealerScore > 21) {
+            document.getElementById('result').innerHTML = '딜러 버스트! 플레이어 승리!';
+            return;
+        }
+        if (gameOver) {
+            if (playerScore > dealerScore) {
+                document.getElementById('result').innerHTML = '플레이어 승리!';
+            } else if (playerScore < dealerScore) {
+                document.getElementById('result').innerHTML = '딜러 승리!';
+            } else {
+                document.getElementById('result').innerHTML = '무승부!';
+            }
+        }
     }
     document.getElementById('hit-btn').onclick = function() {
         if (gameOver) return;
@@ -172,7 +279,7 @@
             gameOver = true;
         }
         render();
-        document.getElementById('result').textContent = checkResult();
+        checkResult();
     };
     document.getElementById('stand-btn').onclick = function() {
         if (gameOver) return;
@@ -181,10 +288,13 @@
         }
         gameOver = true;
         render();
-        document.getElementById('result').textContent = checkResult();
+        checkResult();
     };
     document.getElementById('restart-btn').onclick = function() {
         initGame();
+        document.getElementById('blackjack-banner').style.opacity = 0;
+        canvas.style.display = 'none';
+        fireworks = [];
     };
     initGame();
     </script>
