@@ -203,11 +203,28 @@
 		document.getElementById('player-score').textContent = `점수: ${calcScore(player)}`;
 		document.getElementById('dealer-score').textContent = gameOver ? `점수: ${calcScore(dealer)}` : '';
 		document.getElementById('result').textContent = checkResult();
+
+		// 플레이어가 21점일 때 즉시 BLACKJACK 표시
+		if (!gameOver && !playerStand && calcScore(player) === 21) {
+			showBlackjackCelebration();
+		}
 	}
 	// 결과 체크
 	function checkResult() {
 		let playerScore = calcScore(player);
 		let dealerScore = calcScore(dealer);
+
+		// 플레이어가 21점일 때 즉시 BLACKJACK 표시 (스탠드 전)
+		if (!gameOver && !playerStand && playerScore === 21) {
+			return 'BLACK JACK!';
+		}
+
+		// 21점 무승부일 경우 BLACKJACK 표시
+		if (gameOver && playerScore === 21 && dealerScore === 21) {
+			showBlackjackCelebration();
+			return '무승부! (BLACK JACK!)';
+		}
+
 		if (gameOver && playerScore === 21 && playerScore > dealerScore) {
 			showBlackjackCelebration();
 			return '플레이어 승리! (BLACK JACK!)';
