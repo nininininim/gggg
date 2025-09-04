@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>포커 게임</title>
+	<style>
+		body {
+			background: #2e2e2e;
+			color: #fff;
+			font-family: 'Segoe UI', Arial, sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+		.container {
+			max-width: 600px;
+			margin: 40px auto;
+			background: #222;
+			border-radius: 12px;
+			box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+			padding: 32px;
+		}
+		h1 {
+			text-align: center;
+			margin-bottom: 24px;
+		}
+		.cards {
+			display: flex;
+			justify-content: center;
+			gap: 12px;
+			margin-bottom: 24px;
+		}
+		.card {
+			width: 60px;
+			height: 90px;
+			background: #fff;
+			color: #222;
+			border-radius: 8px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.2em;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+			position: relative;
+		}
+		.card.suit-heart, .card.suit-diamond {
+			color: #e53935;
+		}
+		.actions {
+			text-align: center;
+		}
+		button {
+			background: #4caf50;
+			color: #fff;
+			border: none;
+			border-radius: 6px;
+			padding: 10px 24px;
+			font-size: 1em;
+			cursor: pointer;
+			margin: 0 8px;
+			transition: background 0.2s;
+		}
+		button:hover {
+			background: #388e3c;
+		}
+		.result {
+			text-align: center;
+			margin-top: 24px;
+			font-size: 1.2em;
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>포커 게임</h1>
+		<div class="cards" id="player-cards"></div>
+		<div class="actions">
+			<button onclick="deal()">카드 받기</button>
+			<button onclick="resetGame()">초기화</button>
+		</div>
+		<div class="result" id="result"></div>
+	</div>
+	<script>
+		const suits = ["♠", "♥", "♦", "♣"];
+		const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+		let deck = [];
+		let playerHand = [];
+
+		function createDeck() {
+			deck = [];
+			for (let suit of suits) {
+				for (let rank of ranks) {
+					deck.push({suit, rank});
+				}
+			}
+		}
+
+		function shuffleDeck() {
+			for (let i = deck.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[deck[i], deck[j]] = [deck[j], deck[i]];
+			}
+		}
+
+		function deal() {
+			if (playerHand.length === 5) return;
+			if (deck.length === 0) {
+				createDeck();
+				shuffleDeck();
+			}
+			playerHand.push(deck.pop());
+			renderCards();
+			if (playerHand.length === 5) {
+				showResult();
+			}
+		}
+
+		function resetGame() {
+			playerHand = [];
+			createDeck();
+			shuffleDeck();
+			renderCards();
+			document.getElementById('result').textContent = '';
+		}
+
+		function renderCards() {
+			const container = document.getElementById('player-cards');
+			container.innerHTML = '';
+			playerHand.forEach(card => {
+				const cardDiv = document.createElement('div');
+				cardDiv.className = 'card suit-' + (card.suit === '♥' ? 'heart' : card.suit === '♦' ? 'diamond' : card.suit === '♣' ? 'club' : 'spade');
+				cardDiv.innerHTML = `<span>${card.rank}</span><span>${card.suit}</span>`;
+				container.appendChild(cardDiv);
+			});
+		}
+
+		function showResult() {
+			const result = document.getElementById('result');
+			const handType = evaluateHand(playerHand);
+			result.textContent = `패: ${handType}`;
+		}
+
+		// 포커 핸드 평가 (간단 버전)
+		function evaluateHand(hand) {
+			// 숫자별, 무늬별 카운트
+			const rankCount = {};
+			const suitCount = {};
+			hand.forEach(card => {
+				rankCount[card.rank] = (rankCount[card.rank] || 0) + 1;
+				suitCount[card.suit] = (suitCount[card.suit] || 0) + 1;
+			});
+			const ranksSorted = hand.map(card => ranks.indexOf(card.rank)).sort((a,b)=>a-b);
+			const isFlush = Object.values(suitCount).some(count => count === 5);
+			const isStraight = ranksSorted.every((v,i,a) => i===0 || v-a[i-1]===1);
+			const counts = Object.values(rankCount).sort((a,b)=>b-a);
+			if (isFlush && isStraight) return '스트레이트 플러시';
+			if (counts[0] === 4) return '포카드';
+			if (counts[0] === 3 && counts[1] === 2) return '풀하우스';
+			if (isFlush) return '플러시';
+			if (isStraight) return '스트레이트';
+			if (counts[0] === 3) return '트리플';
+			if (counts[0] === 2 && counts[1] === 2) return '투페어';
+			if (counts[0] === 2) return '원페어';
+			return '하이카드';
+		}
+
+		// 초기화
+		resetGame();
+	</script>
+</body>
+</html>
