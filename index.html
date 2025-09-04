@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>고스톱 AI 대전</title>
+		body {
+			font-family: 'Noto Sans KR', Arial, sans-serif;
+			background: #f7f7f7;
+		.container {
+			max-width: 700px;
+			margin: 40px auto;
+		h1 {
+			text-align: center;
+			color: #d32f2f;
+		.board {
+			display: flex;
+			flex-direction: column;
+		.cards {
+			display: flex;
+			gap: 8px;
+		.card {
+			width: 60px;
+			height: 90px;
+		.info {
+			text-align: center;
+			margin-bottom: 16px;
+		.btn {
+			display: block;
+			margin: 0 auto;
+		.score {
+			margin-top: 16px;
+			text-align: center;
+	</style>
+	<script>
+	// 고스톱 간단 버전: 12장(월별), 각 월 2장씩, 24장 사용
+	const months = [
+		'1월', '2월', '3월', '4월', '5월', '6월',
+	let deck = [];
+	let playerHand = [];
+	let aiHand = [];
+	let playerScore = 0;
+	let aiScore = 0;
+	let selectedCard = null;
+	function initDeck() {
+		deck = [];
+		for (let m of months) {
+	function shuffle(arr) {
+		return arr.sort(() => Math.random() - 0.5);
+	}
+	function deal() {
+		playerHand = deck.splice(0, 10);
+		aiHand = deck.splice(0, 10);
+	function render() {
+		const playerDiv = document.getElementById('player-hand');
+		const aiDiv = document.getElementById('ai-hand');
+		playerHand.forEach((card, idx) => {
+			const el = document.createElement('div');
+			el.className = 'card' + (selectedCard === idx ? ' selected' : '');
+			playerDiv.appendChild(el);
+		});
+		aiHand.forEach(card => {
+			ground.forEach(card => {
+				const el = document.createElement('div');
+				el.className = 'card';
+				groundDiv.appendChild(el);
+			});
+			document.getElementById('score').textContent = `플레이어 점수: ${playerScore} | AI 점수: ${aiScore}`;
+	function playPlayer() {
+		if (selectedCard === null || turn !== 'player') return;
+		const card = playerHand[selectedCard];
+	turn = 'ai';
+	render();
+	setTimeout(playAI, 1200);
+	function playAI() {
+		if (aiHand.length === 0) return;
+		// AI: 가장 많이 겹치는 월을 우선 선택
+		let card = aiHand[bestIdx];
+		if (bestMatch !== -1) {
+			aiScore++;
+	turn = 'player';
+	render();
+	checkEnd();
+	function checkEnd() {
+		if (playerHand.length === 0 && aiHand.length === 0) {
+			let msg = '';
+			document.getElementById('info').textContent = msg;
+			document.getElementById('play-btn').disabled = true;
+	document.getElementById('play-btn').onclick = playPlayer;
+	function startGame() {
+		initDeck();
+		deal();
+	startGame();
+	</script>
+<body>
+	<div class="container">
+		<h1>고스톱 AI 대전</h1>
+		<div class="info" id="info">플레이어의 차례입니다.</div>
+		<div class="board">
+			<div><strong>플레이어 패</strong></div>
+			<div class="cards" id="player-hand"></div>
+			<div><strong>AI 패</strong></div>
+			<div class="cards" id="ai-hand"></div>
+			<div><strong>땅에 깔린 패</strong></div>
+			<div class="cards" id="ground"></div>
+		</div>
+		<button class="btn" id="play-btn">선택한 패로 내기</button>
+		<div class="score" id="score"></div>
+	</div>
+</body>
+</html>
