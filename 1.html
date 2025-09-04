@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>블랙잭 게임</title>
+    <style>
+        body {
+            background: #222;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            margin-top: 40px;
+            background: #333;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            padding: 32px 24px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 340px;
+        }
+        h1 {
+            margin-bottom: 18px;
+            color: #ffd700;
+        }
+        .cards {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .card {
+            width: 48px;
+            height: 68px;
+            background: #fff;
+            color: #222;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
+        .btn-group {
+            margin-top: 18px;
+            display: flex;
+            gap: 16px;
+        }
+        button {
+            padding: 10px 28px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 6px;
+            background: #ffd700;
+            color: #222;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #e6c200;
+        }
+        .result {
+            margin-top: 18px;
+            font-size: 1.1rem;
+            color: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>블랙잭 게임</h1>
+        <div>
+            <strong>딜러:</strong>
+            <div class="cards" id="dealer-cards"></div>
+            <span id="dealer-score"></span>
+        </div>
+        <div style="margin-top:18px;">
+            <strong>플레이어:</strong>
+            <div class="cards" id="player-cards"></div>
+            <span id="player-score"></span>
+        </div>
+        <div class="btn-group">
+            <button id="hit-btn">Hit</button>
+            <button id="stand-btn">Stand</button>
+            <button id="restart-btn">Restart</button>
+        </div>
+        <div class="result" id="result"></div>
+    </div>
+    <script>
+    // 블랙잭 카드 덱 생성
+    const suits = ['♠', '♥', '♣', '◆'];
+    const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+    function createDeck() {
+        let deck = [];
+        for (let s of suits) {
+            for (let r of ranks) {
+                deck.push({suit: s, rank: r});
+            }
+        }
+        return deck.sort(() => Math.random() - 0.5);
+    }
+    function getCardValue(card) {
+        if (card.rank === 'A') return 11;
+        if (['K','Q','J'].includes(card.rank)) return 10;
+        return parseInt(card.rank);
+    }
+    function calcScore(cards) {
+        let score = 0;
+        let aces = 0;
+        for (let c of cards) {
+            score += getCardValue(c);
+            if (c.rank === 'A') aces++;
+        }
+        while (score > 21 && aces > 0) {
+            score -= 10;
+            aces--;
+        }
+        return score;
+    }
+    let deck, dealer, player, gameOver;
+    function initGame() {
+        deck = createDeck();
+        dealer = [deck.pop(), deck.pop()];
+        player = [deck.pop(), deck.pop()];
+        gameOver = false;
+        render();
+        document.getElementById('result').textContent = '';
+    }
+    function render() {
+        const dealerCards = document.getElementById('dealer-cards');
+        dealerCards.innerHTML = '';
+        dealer.forEach((c, i) => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.textContent = (i === 0 && !gameOver) ? '🂠' : c.rank + c.suit;
+            dealerCards.appendChild(cardDiv);
+        });
+        document.getElementById('dealer-score').textContent = gameOver ? `점수: ${calcScore(dealer)}` : '';
+        const playerCards = document.getElementById('player-cards');
+        playerCards.innerHTML = '';
+        player.forEach(c => {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.textContent = c.rank + c.suit;
+            playerCards.appendChild(cardDiv);
+        });
+        document.getElementById('player-score').textContent = `점수: ${calcScore(player)}`;
+    }
+    function checkResult() {
+        let playerScore = calcScore(player);
+        let dealerScore = calcScore(dealer);
+        if (playerScore > 21) return '플레이어 버스트! 딜러 승리!';
+        if (dealerScore > 21) return '딜러 버스트! 플레이어 승리!';
+        if (gameOver) {
+            if (playerScore > dealerScore) return '플레이어 승리!';
+            if (playerScore < dealerScore) return '딜러 승리!';
+            return '무승부!';
+        }
+        return '';
+    }
+    document.getElementById('hit-btn').onclick = function() {
+        if (gameOver) return;
+        player.push(deck.pop());
+        if (calcScore(player) > 21) {
+            gameOver = true;
+        }
+        render();
+        document.getElementById('result').textContent = checkResult();
+    };
+    document.getElementById('stand-btn').onclick = function() {
+        if (gameOver) return;
+        while (calcScore(dealer) < 17) {
+            dealer.push(deck.pop());
+        }
+        gameOver = true;
+        render();
+        document.getElementById('result').textContent = checkResult();
+    };
+    document.getElementById('restart-btn').onclick = function() {
+        initGame();
+    };
+    initGame();
+    </script>
+</body>
+</html>
