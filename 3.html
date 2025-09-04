@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8">
+	<title>2인용 총게임</title>
+	<style>
+		body {
+			margin: 0;
+			background: #222;
+			color: #fff;
+			font-family: sans-serif;
+		}
+		#game {
+			display: block;
+			margin: 40px auto;
+			background: #444;
+			border: 3px solid #888;
+		}
+		.info {
+			text-align: center;
+			margin-top: 10px;
+		}
+	</style>
+</head>
+<body>
+	<h2 style="text-align:center;">2인용 총게임</h2>
+	<canvas id="game" width="900" height="400"></canvas>
+	<div class="info">
+		<b>Player1:</b> W/A/S/D(점프/좌/하/우), F(공격)<br>
+		<b>Player2:</b> ↑/←/↓/→(점프/좌/하/우), L(공격)
+	</div>
+	<script>
+	// 게임 설정
+	const canvas = document.getElementById('game');
+	const ctx = canvas.getContext('2d');
+	const GRAVITY = 0.7;
+	const GROUND = 340;
+	const PLAYER_SIZE = {w: 40, h: 60};
+	const ITEM_SIZE = 30;
+	const BULLET_SIZE = 10;
+	const players = [
+		{x: 100, y: GROUND, vx: 0, vy: 0, color: '#4af', hp: 100, dir: 1, jump: false, keys: {}, bullets: [], score: 0},
+		{x: 760, y: GROUND, vx: 0, vy: 0, color: '#fa4', hp: 100, dir: -1, jump: false, keys: {}, bullets: [], score: 0}
+	];
+	let items = [];
+	let gameOver = false;
+
+	// 키 매핑
+	const keyMap = [
+		{left: 'a', right: 'd', down: 's', jump: 'w', shoot: 'f'},
+		{left: 'ArrowLeft', right: 'ArrowRight', down: 'ArrowDown', jump: 'ArrowUp', shoot: 'l'}
+	];
+
+	// 아이템 종류
+	const itemTypes = [
+		{type: 'heal', color: '#0f0'},
+		{type: 'power', color: '#ff0'}
+	];
+
+	// 키 입력 처리
+	document.addEventListener('keydown', e => {
+		for (let i = 0; i < 2; i++) {
+			for (const k in keyMap[i]) {
+				if (e.key.toLowerCase() === keyMap[i][k]) players[i].keys[k] = true;
+			}
+		}
+	});
+	document.addEventListener('keyup', e => {
+		for (let i = 0; i < 2; i++) {
+			for (const k in keyMap[i]) {
+				if (e.key.toLowerCase() === keyMap[i][k]) players[i].keys[k] = false;
+			}
+		}
+	});
+
+	// 게임 루프
+	function gameLoop() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		// 땅
+		ctx.fillStyle = '#333';
+		ctx.fillRect(0, GROUND + PLAYER_SIZE.h, canvas.width, 50);
+
+		// 아이템 생성
+		if (Math.random() < 0.01 && items.length < 3) {
+			const t = itemTypes[Math.floor(Math.random()*itemTypes.length)];
+			items.push({x: Math.random()*(canvas.width-ITEM_SIZE), y: GROUND, type: t.type, color: t.color});
+		}
+
+		// 아이템 그리기
+		items.forEach(item => {
+			ctx.fillStyle = item.color;
+			ctx.fillRect(item.x, item.y, ITEM_SIZE, ITEM_SIZE);
+		});
+
+		// 플레이어 처리
+		players.forEach((p, idx) => {
+			// 이동
+			if (p.keys.left) p.vx = -4;
+			else if (p.keys.right) p.vx = 4;
+			else p.vx = 0;
+			// 점프
+			if (p.keys.jump && !p.jump && p.y >= GROUND) {
+				p.vy = -13;
+				p.jump = true;
+			}
+			// 아래로(빠른 착지)
+			if (p.keys.down && p.y < GROUND) p.vy += 2;
+			// 중력
+			p.vy += GRAVITY;
+			p.x += p.vx;
+			p.y += p.vy;
+			// 땅 충돌
+			if (p.y >= GROUND) {
+				p.y = GROUND;
+				p.vy = 0;
+				p.jump = false;
+			}
+			// 화면 경계
+			p.x = Math.max(0, Math.min(canvas.width-PLAYER_SIZE.w, p.x));
+
+			// 아이템 획득
+			items = items.filter(item => {
+				if (Math.abs(item.x - p.x) < ITEM_SIZE && Math.abs(item.y - p.y) < ITEM_SIZE) {
+					if (item.type === 'heal') p.hp = Math.min(100, p.hp+30);
+					if (item.type === 'power') p.score += 1;
+					return false;
+				}
+				return true;
+			});
+
+			// 공격(총알 발사)
+			if (p.keys.shoot && p.bullets.length < 1) {
+				p.bullets.push({x: p.x + (p.dir>0?PLAYER_SIZE.w:0), y: p.y+PLAYER_SIZE.h/2, vx: p.dir*8, power: p.score>0?2:1});
+			}
+			// 총알 이동/충돌
+			p.bullets = p.bullets.filter(b => {
+				b.x += b.vx;
+				// 상대방과 충돌
+				const opp = players[1-idx];
+				if (b.x > opp.x && b.x < opp.x+PLAYER_SIZE.w && b.y > opp.y && b.y < opp.y+PLAYER_SIZE.h) {
+					opp.hp -= 10*b.power;
+					return false;
+				}
+				// 화면 밖
+				return b.x > 0 && b.x < canvas.width;
+			});
+		});
+
+		// 플레이어 그리기
+		players.forEach((p, idx) => {
+			ctx.fillStyle = p.color;
+			ctx.fillRect(p.x, p.y, PLAYER_SIZE.w, PLAYER_SIZE.h);
+			// HP/점수 표시
+			ctx.fillStyle = '#fff';
+			ctx.font = '16px sans-serif';
+			ctx.fillText(`HP:${p.hp} Score:${p.score}`, p.x, p.y-10);
+			// 총알 그리기
+			p.bullets.forEach(b => {
+				ctx.fillStyle = '#ff0';
+				ctx.beginPath();
+				ctx.arc(b.x, b.y, BULLET_SIZE, 0, Math.PI*2);
+				ctx.fill();
+			});
+		});
+
+		// 승패 판정
+		if (!gameOver && players.some(p => p.hp <= 0)) {
+			gameOver = true;
+			setTimeout(()=>{
+				alert('게임 종료! 승자: ' + (players[0].hp>0 ? 'Player1' : 'Player2'));
+				location.reload();
+			}, 100);
+		}
+
+		if (!gameOver) requestAnimationFrame(gameLoop);
+	}
+	gameLoop();
+	</script>
+</body>
+</html>
