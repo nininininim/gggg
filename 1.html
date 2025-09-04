@@ -1,302 +1,316 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>블랙잭 게임</title>
-    <style>
-        body {
-            background: #222;
-            color: #fff;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            margin-top: 40px;
-            background: #333;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-            padding: 32px 24px 24px 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 340px;
-        }
-        h1 {
-            margin-bottom: 18px;
-            color: #ffd700;
-        }
-        .cards {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .card {
-            width: 48px;
-            height: 68px;
-            background: #fff;
-            color: #222;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.3rem;
-            font-weight: bold;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-        }
-        .btn-group {
-            margin-top: 18px;
-            display: flex;
-            gap: 16px;
-        }
-        button {
-            padding: 10px 28px;
-            font-size: 1rem;
-            border: none;
-            border-radius: 6px;
-            background: #ffd700;
-            color: #222;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background: #e6c200;
-        }
-        .result {
-            margin-top: 18px;
-            font-size: 1.1rem;
-            color: #ff5252;
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
-        .blackjack-banner {
-            position: fixed;
-            top: 20%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'Bebas Neue', cursive, sans-serif;
-            font-size: 4rem;
-            color: #ffd700;
-            text-shadow: 0 0 16px #fff700, 0 0 32px #ffd700;
-            z-index: 10;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-        #fireworks-canvas {
-            position: fixed;
-            left: 0; top: 0;
-            width: 100vw; height: 100vh;
-            pointer-events: none;
-            z-index: 9;
-            display: none;
-        }
-    </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>블랙잭</title>
+	<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+	<style>
+		body {
+			background: linear-gradient(135deg, #222 60%, #444 100%);
+			color: #fff;
+			font-family: 'Bebas Neue', Arial, sans-serif;
+			margin: 0;
+			min-height: 100vh;
+		}
+		.container {
+			max-width: 420px;
+			margin: 40px auto;
+			background: rgba(0,0,0,0.7);
+			border-radius: 16px;
+			box-shadow: 0 8px 32px #000a;
+			padding: 32px 24px 24px 24px;
+			position: relative;
+		}
+		h1 {
+			text-align: center;
+			font-size: 3rem;
+			letter-spacing: 2px;
+			color: #ffd700;
+			margin-bottom: 16px;
+			text-shadow: 0 0 12px #fff700, 0 0 32px #ffd700;
+		}
+		.cards {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			margin-bottom: 8px;
+		}
+		.card {
+			width: 48px;
+			height: 68px;
+			background: #fff;
+			color: #222;
+			border-radius: 8px;
+			box-shadow: 0 2px 8px #0004;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.3rem;
+			font-weight: bold;
+			position: relative;
+		}
+		.score {
+			font-size: 1.2rem;
+			margin-bottom: 8px;
+		}
+		.label {
+			font-size: 1.1rem;
+			margin-bottom: 4px;
+			color: #ffd700;
+			font-weight: bold;
+		}
+		.btns {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			margin-top: 18px;
+		}
+		button {
+			background: #ffd700;
+			color: #222;
+			border: none;
+			border-radius: 8px;
+			font-size: 1.1rem;
+			font-family: inherit;
+			font-weight: bold;
+			padding: 10px 24px;
+			cursor: pointer;
+			box-shadow: 0 2px 8px #0003;
+			transition: background 0.2s;
+		}
+		button:active {
+			background: #e6c200;
+		}
+		.result {
+			text-align: center;
+			font-size: 1.3rem;
+			margin-top: 18px;
+			min-height: 32px;
+		}
+		.blackjack-banner {
+			position: fixed;
+			top: 20%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			font-family: 'Bebas Neue', cursive, sans-serif;
+			font-size: 4rem;
+			color: #ffd700;
+			text-shadow: 0 0 16px #fff700, 0 0 32px #ffd700;
+			z-index: 10;
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 0.5s;
+		}
+		#fireworks-canvas {
+			position: fixed;
+			left: 0; top: 0;
+			width: 100vw; height: 100vh;
+			pointer-events: none;
+			z-index: 9;
+			display: none;
+		}
+	</style>
 </head>
 <body>
-    <div class="container">
-        <h1>블랙잭 게임</h1>
-        <div>
-            <strong>딜러:</strong>
-            <div class="cards" id="dealer-cards"></div>
-            <span id="dealer-score"></span>
-        </div>
-        <div style="margin-top:18px;">
-            <strong>플레이어:</strong>
-            <div class="cards" id="player-cards"></div>
-            <span id="player-score"></span>
-        </div>
-        <div class="btn-group">
-            <button id="hit-btn">Hit</button>
-            <button id="stand-btn">Stand</button>
-            <button id="restart-btn">Restart</button>
-        </div>
-        <div class="result" id="result"></div>
-    </div>
-    <div class="blackjack-banner" id="blackjack-banner">BLACK JACK</div>
-    <canvas id="fireworks-canvas"></canvas>
-    <script>
-    // 블랙잭 카드 덱 생성
-    const suits = ['♠', '♥', '♣', '◆'];
-    const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-    function createDeck() {
-        let deck = [];
-        for (let s of suits) {
-            for (let r of ranks) {
-                deck.push({suit: s, rank: r});
-            }
-        }
-        return deck.sort(() => Math.random() - 0.5);
-    }
-    function getCardValue(card) {
-        if (card.rank === 'A') return 11;
-        if (['K','Q','J'].includes(card.rank)) return 10;
-        return parseInt(card.rank);
-    }
-    function calcScore(cards) {
-        let score = 0;
-        let aces = 0;
-        for (let c of cards) {
-            score += getCardValue(c);
-            if (c.rank === 'A') aces++;
-        }
-        while (score > 21 && aces > 0) {
-            score -= 10;
-            aces--;
-        }
-        return score;
-    }
-    let deck, dealer, player, gameOver;
-    function initGame() {
-        deck = createDeck();
-        dealer = [deck.pop(), deck.pop()];
-        player = [deck.pop(), deck.pop()];
-        gameOver = false;
-        render();
-        document.getElementById('result').textContent = '';
-    }
-    function render() {
-        const dealerCards = document.getElementById('dealer-cards');
-        dealerCards.innerHTML = '';
-        dealer.forEach((c, i) => {
-            const cardDiv = document.createElement('div');
-            cardDiv.className = 'card';
-            cardDiv.textContent = (i === 0 && !gameOver) ? '🂠' : c.rank + c.suit;
-            dealerCards.appendChild(cardDiv);
-        });
-        document.getElementById('dealer-score').textContent = gameOver ? `점수: ${calcScore(dealer)}` : '';
-        const playerCards = document.getElementById('player-cards');
-        playerCards.innerHTML = '';
-        player.forEach(c => {
-            const cardDiv = document.createElement('div');
-            cardDiv.className = 'card';
-            cardDiv.textContent = c.rank + c.suit;
-            playerCards.appendChild(cardDiv);
-        });
-        document.getElementById('player-score').textContent = `점수: ${calcScore(player)}`;
-    }
-    // 폭죽 애니메이션 코드
-    const canvas = document.getElementById('fireworks-canvas');
-    const ctx = canvas.getContext('2d');
-    let fireworks = [];
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    function launchFirework() {
-        const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
-        const y = Math.random() * canvas.height * 0.3 + canvas.height * 0.2;
-        const particles = [];
-        const count = 32;
-        for (let i = 0; i < count; i++) {
-            const angle = (Math.PI * 2 * i) / count;
-            const speed = Math.random() * 3 + 2;
-            particles.push({
-                x, y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                alpha: 1,
-                radius: Math.random() * 3 + 2,
-                color: `rgba(255,215,0,1)`
-            });
-        }
-        fireworks.push(particles);
-    }
-
-    function animateFireworks() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        fireworks.forEach((particles, idx) => {
-            particles.forEach(p => {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = p.color.replace('1)', p.alpha + ')');
-                ctx.fill();
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.05; // gravity
-                p.alpha -= 0.018;
-            });
-        });
-        fireworks = fireworks.filter(particles => particles.some(p => p.alpha > 0));
-        if (fireworks.length > 0) {
-            requestAnimationFrame(animateFireworks);
-        } else {
-            canvas.style.display = 'none';
-            document.getElementById('blackjack-banner').style.opacity = 0;
-        }
-    }
-
-    function showBlackjackCelebration() {
-        document.getElementById('blackjack-banner').style.opacity = 1;
-        canvas.style.display = 'block';
-        for (let i = 0; i < 5; i++) {
-            setTimeout(launchFirework, i * 350);
-        }
-        animateFireworks();
-        setTimeout(() => {
-            document.getElementById('blackjack-banner').style.opacity = 0;
-            canvas.style.display = 'none';
-        }, 3200);
-    }
-
-    function checkResult() {
-        let playerScore = calcScore(player);
-        let dealerScore = calcScore(dealer);
-        // 21점으로 이겼을 때
-        if (gameOver && playerScore === 21 && playerScore > dealerScore) {
-            showBlackjackCelebration();
-            document.getElementById('result').innerHTML = '플레이어 승리! (BLACK JACK!)';
-            return;
-        }
-        if (playerScore > 21) {
-            document.getElementById('result').innerHTML = '플레이어 버스트! 딜러 승리!';
-            return;
-        }
-        if (dealerScore > 21) {
-            document.getElementById('result').innerHTML = '딜러 버스트! 플레이어 승리!';
-            return;
-        }
-        if (gameOver) {
-            if (playerScore > dealerScore) {
-                document.getElementById('result').innerHTML = '플레이어 승리!';
-            } else if (playerScore < dealerScore) {
-                document.getElementById('result').innerHTML = '딜러 승리!';
-            } else {
-                document.getElementById('result').innerHTML = '무승부!';
-            }
-        }
-    }
-    document.getElementById('hit-btn').onclick = function() {
-        if (gameOver) return;
-        player.push(deck.pop());
-        if (calcScore(player) > 21) {
-            gameOver = true;
-        }
-        render();
-        checkResult();
-    };
-    document.getElementById('stand-btn').onclick = function() {
-        if (gameOver) return;
-        while (calcScore(dealer) < 17) {
-            dealer.push(deck.pop());
-        }
-        gameOver = true;
-        render();
-        checkResult();
-    };
-    document.getElementById('restart-btn').onclick = function() {
-        initGame();
-        document.getElementById('blackjack-banner').style.opacity = 0;
-        canvas.style.display = 'none';
-        fireworks = [];
-    };
-    initGame();
-    </script>
+	<div class="container">
+		<h1>블랙잭</h1>
+		<div class="label">딜러</div>
+		<div class="cards" id="dealer-cards"></div>
+		<div class="score" id="dealer-score"></div>
+		<hr style="margin: 18px 0; border: none; border-top: 1px solid #ffd700;">
+		<div class="label">플레이어</div>
+		<div class="cards" id="player-cards"></div>
+		<div class="score" id="player-score"></div>
+		<div class="btns">
+			<button id="hit-btn">Hit</button>
+			<button id="stand-btn">Stand</button>
+			<button id="restart-btn">Restart</button>
+		</div>
+		<div class="result" id="result"></div>
+	</div>
+	<div class="blackjack-banner" id="blackjack-banner">BLACK JACK</div>
+	<canvas id="fireworks-canvas"></canvas>
+	<script>
+	// 카드 덱 생성
+	const suits = ['♠', '♥', '♦', '♣'];
+	const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+	function createDeck() {
+		let deck = [];
+		for (let s of suits) {
+			for (let r of ranks) {
+				deck.push({suit: s, rank: r});
+			}
+		}
+		return deck;
+	}
+	function shuffle(deck) {
+		for (let i = deck.length - 1; i > 0; i--) {
+			let j = Math.floor(Math.random() * (i + 1));
+			[deck[i], deck[j]] = [deck[j], deck[i]];
+		}
+		return deck;
+	}
+	// 점수 계산
+	function calcScore(hand) {
+		let score = 0, aces = 0;
+		for (let card of hand) {
+			if (card.rank === 'A') {
+				score += 11;
+				aces++;
+			} else if (['K','Q','J'].includes(card.rank)) {
+				score += 10;
+			} else {
+				score += parseInt(card.rank);
+			}
+		}
+		while (score > 21 && aces > 0) {
+			score -= 10;
+			aces--;
+		}
+		return score;
+	}
+	// 카드 렌더링
+	function renderCards(elem, hand, hideFirst=false) {
+		elem.innerHTML = '';
+		hand.forEach((card, idx) => {
+			let cardDiv = document.createElement('div');
+			cardDiv.className = 'card';
+			if (hideFirst && idx === 0) {
+				cardDiv.innerHTML = '?';
+				cardDiv.style.background = '#ffd700';
+				cardDiv.style.color = '#222';
+			} else {
+				cardDiv.innerHTML = `${card.rank}<br><span style="font-size:1.2em;">${card.suit}</span>`;
+				if(card.suit==='♥'||card.suit==='♦') cardDiv.style.color='#e44';
+			}
+			elem.appendChild(cardDiv);
+		});
+	}
+	// 상태 변수
+	let deck, player, dealer, gameOver, playerStand;
+	function initGame() {
+		deck = shuffle(createDeck());
+		player = [deck.pop(), deck.pop()];
+		dealer = [deck.pop(), deck.pop()];
+		gameOver = false;
+		playerStand = false;
+		updateUI();
+	}
+	function updateUI() {
+		renderCards(document.getElementById('player-cards'), player);
+		renderCards(document.getElementById('dealer-cards'), dealer, !gameOver && !playerStand);
+		document.getElementById('player-score').textContent = `점수: ${calcScore(player)}`;
+		document.getElementById('dealer-score').textContent = gameOver ? `점수: ${calcScore(dealer)}` : '';
+		document.getElementById('result').textContent = checkResult();
+	}
+	// 결과 체크
+	function checkResult() {
+		let playerScore = calcScore(player);
+		let dealerScore = calcScore(dealer);
+		if (gameOver && playerScore === 21 && playerScore > dealerScore) {
+			showBlackjackCelebration();
+			return '플레이어 승리! (BLACK JACK!)';
+		}
+		if (playerScore > 21) return '플레이어 버스트! 딜러 승리!';
+		if (dealerScore > 21) return '딜러 버스트! 플레이어 승리!';
+		if (gameOver) {
+			if (playerScore > dealerScore) return '플레이어 승리!';
+			if (playerScore < dealerScore) return '딜러 승리!';
+			return '무승부!';
+		}
+		return '';
+	}
+	// 버튼 이벤트
+	document.getElementById('hit-btn').onclick = function() {
+		if (gameOver || playerStand) return;
+		player.push(deck.pop());
+		if (calcScore(player) > 21) {
+			gameOver = true;
+		}
+		updateUI();
+	};
+	document.getElementById('stand-btn').onclick = function() {
+		if (gameOver || playerStand) return;
+		playerStand = true;
+		// 딜러 턴
+		while (calcScore(dealer) < 17) {
+			dealer.push(deck.pop());
+		}
+		gameOver = true;
+		updateUI();
+	};
+	document.getElementById('restart-btn').onclick = function() {
+		initGame();
+		document.getElementById('blackjack-banner').style.opacity = 0;
+		canvas.style.display = 'none';
+		fireworks = [];
+	};
+	// 폭죽 애니메이션
+	const canvas = document.getElementById('fireworks-canvas');
+	const ctx = canvas.getContext('2d');
+	let fireworks = [];
+	function resizeCanvas() {
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	}
+	window.addEventListener('resize', resizeCanvas);
+	resizeCanvas();
+	function launchFirework() {
+		const x = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+		const y = Math.random() * canvas.height * 0.3 + canvas.height * 0.2;
+		const particles = [];
+		const count = 32;
+		for (let i = 0; i < count; i++) {
+			const angle = (Math.PI * 2 * i) / count;
+			const speed = Math.random() * 3 + 2;
+			particles.push({
+				x, y,
+				vx: Math.cos(angle) * speed,
+				vy: Math.sin(angle) * speed,
+				alpha: 1,
+				radius: Math.random() * 3 + 2,
+				color: `rgba(255,215,0,1)`
+			});
+		}
+		fireworks.push(particles);
+	}
+	function animateFireworks() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		fireworks.forEach((particles, idx) => {
+			particles.forEach(p => {
+				ctx.beginPath();
+				ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+				ctx.fillStyle = p.color.replace('1)', p.alpha + ')');
+				ctx.fill();
+				p.x += p.vx;
+				p.y += p.vy;
+				p.vy += 0.05;
+				p.alpha -= 0.018;
+			});
+		});
+		fireworks = fireworks.filter(particles => particles.some(p => p.alpha > 0));
+		if (fireworks.length > 0) {
+			requestAnimationFrame(animateFireworks);
+		} else {
+			canvas.style.display = 'none';
+			document.getElementById('blackjack-banner').style.opacity = 0;
+		}
+	}
+	function showBlackjackCelebration() {
+		document.getElementById('blackjack-banner').style.opacity = 1;
+		canvas.style.display = 'block';
+		for (let i = 0; i < 5; i++) {
+			setTimeout(launchFirework, i * 350);
+		}
+		animateFireworks();
+		setTimeout(() => {
+			document.getElementById('blackjack-banner').style.opacity = 0;
+			canvas.style.display = 'none';
+		}, 3200);
+	}
+	// 시작
+	initGame();
+	</script>
 </body>
 </html>
